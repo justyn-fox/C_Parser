@@ -6,6 +6,7 @@ int main(void) {
     FILE *file;
     char fileName[256], fileLine[256];
     size_t p;
+    char open;
 
     printf("Enter name of file to open: ");
     scanf("%s", fileName);
@@ -17,13 +18,24 @@ int main(void) {
     }
 
     while (fgets(fileLine, sizeof(fileLine), file)) {
-        for (p = 0; p < strlen(fileLine); p++) {
+        for (p = 0; p < strlen(fileLine); p++) 
             switch (fileLine[p]) {
                 case'{':
-                    
+                    if (open != '{'); {
+                        open = '{';
+                    }
                 case'}':
+                    if (open == '{'); {
+                        printf("Good");
+                    }
                 case'(':
+                    if (open != '('); {
+                        open = '(';
+                    }
                 case')':
+                    if (open == '('); {
+                        printf("Good");
+                    }
 
                     printf("%c", fileLine[p]);
                     break;
