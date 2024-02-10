@@ -9,17 +9,15 @@ int main(void) {
     FILE *file;
     char fileName[256], fileLine[256];
     char stack [size];
+    int errorNum = -1;
+    int errorLines[size];
     size_t p;
 
     int lineNum = 0;
-    int open_brace = 0;
-    int open_parenthesis = 0;
-    int open_bracket = 0;
-    int closed_parenthesis = 0;
-    int closed_bracket = 0;
     int top = -1;
 
-    bool parenthesis_caught = false;
+    bool missing_op = false;
+    bool missing_ob = false;
 
     printf("Enter name of file to open: ");
     scanf("%s", fileName);
@@ -31,77 +29,111 @@ int main(void) {
     }
 
     while (fgets(fileLine, sizeof(fileLine), file)) {
+        printf("%d", top);
+        if (stack[top] != '\0' && top != -1){
+            if (stack[top] == '('){
+            missing_op = true;
+            errorNum++;
+            errorLines[errorNum] = lineNum;
+            }
+            else if (stack[top] == '[') {
+                missing_ob = true;
+                errorNum++;
+                errorLines[errorNum] = lineNum;
+            }
+        }
         lineNum++;
         for (p = 0; p < strlen(fileLine); p++) {
-        
             if(fileLine[p] != '/' && fileLine[p + 1] != '/') {
                 switch (fileLine[p]) {
                 case'{':
+                    if (stack[top] == '{'){
+                        printf("ERROR: Missing closing brace. At line: %d\n", lineNum);
+                    }
                     top++;
                     stack[top] = fileLine[p];
-                    open_brace++; 
                     break;
 
                 case'(':
+
                     top++;
                     stack[top] = fileLine[p];
-                    closed_parenthesis = lineNum; 
-                    open_parenthesis++;
                     break;
 
                 case '[':
+
                     top++;
                     stack[top] = fileLine[p];
-                    open_bracket++;
-                    closed_bracket = lineNum;
                     break;
 
                 case'}':
-                    if (top == -1 || open_brace == 0) {
-                        printf("ERROR: Missing an open brace. At line: %d \n ", lineNum);
+                    int start_brace = top;
+                    for(top ; top > -1 ; top--){
+                        if(top == 0 && stack[top] != '{'){
+                            printf("ERROR: Missing open brace. At line: %d\n" , lineNum);
+                        }
+                        else if (stack[top] == '{')
+                        {
+                            stack[top] = '\0';
+                            break;
+                        }
                     }
-                    else {
-                        open_brace--;
-                    }
+                    top = start_brace;
                     break;
 
                 case')':
-                    if (top == -1 || open_parenthesis == 0) {
-                        printf("ERROR: Missing an open parenthesis. At line: %d \n", lineNum);
+                    int start_p = top;
+                    for(top ; top > -1 ; top--){
+                        if(top == 0 && stack[top] != '('){
+                            printf("ERROR: Missing open parenthesis. At line: %d\n" , lineNum);
+                        }
+                        else if (stack[top] == '(')
+                        {
+                            if (missing_op == true){
+                                missing_op = false;
+                                errorLines[errorNum] = '\0';
+                                errorNum--;
+                            }
+                            stack[top] = '\0';
+                            break;
+                        }
                     }
-                    else {
-                        open_parenthesis--;
-                        
-                    }
+                    top = start_p;
                     break;
 
                 case']':
-                    if (top == -1 || open_bracket == 0) {
-                        printf("ERROR: Missing an open bracket. At line: %d \n ", lineNum);
+                    int start_brack = top;
+                    for(top ; top > -1 ; top--){
+                        if(top == 0 && stack[top] != '['){
+                            printf("ERROR: Missing open bracket. At line: %d\n" ,lineNum);
+                        }
+                        else if (stack[top] == '[')
+                        {
+                            if (missing_ob == true){
+                                missing_ob = false;
+                                errorLines[errorNum] = '\0';
+                                errorNum--;
+                            }
+                            stack[top] = '\0';
+                            break;
+                        }
                     }
-                    else {
-                        open_bracket--;
-                    }
+                    top = start_brack;
                     break;
             
                 }
             }
         }
     }
-
-    if (open_brace > 0 ) {
-        printf("ERROR: Missing closing braces. At line: %d \n", lineNum);
-        open_brace = 0;
-    }
-
-    if (open_parenthesis > 0 ) {
-        printf("ERROR: Missing a closing parenthesis. At line: %d \n", closed_parenthesis);
-        open_parenthesis = 0;
-    }
-
-    if (open_bracket > 0 ) {
-        printf("ERROR: Missing closing brackets. At line: %d \n", lineNum);
-        open_bracket = 0;
+    for(top ; top > -1 ; top--){
+        if (stack[top] == '('){
+            printf("ERROR: Missing closing parenthesis. At line: %d \n", errorLines[errorNum]);
+            //errorNum--;
+        }
+        else if (stack[top] == '['){
+            printf("ERROR: Missing closing bracket. At line: %d \n", errorLines[errorNum]);
+            //errorNum--;
+        }
     }
 
     fclose(file);
