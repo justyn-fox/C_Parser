@@ -33,11 +33,7 @@ int main(void)
       i++;  
       // print this line, with line number 
       printf("%d: %s", i, buffer); 
-   }  
-
-   [
-
-   [
+   }
 
    // print the number of lines in the file 
    printf("=======\nThis file has %d lines.\n=======\n", i);

@@ -9,8 +9,7 @@ int main(void) {
     FILE *file;
     char fileName[256], fileLine[256];
     char stack [size];
-    int errorNum = -1;
-    int errorLines[size];
+    int errorLine;
     size_t p;
 
     int lineNum = 0;
@@ -29,17 +28,14 @@ int main(void) {
     }
 
     while (fgets(fileLine, sizeof(fileLine), file)) {
-        printf("%d", top);
         if (stack[top] != '\0' && top != -1){
-            if (stack[top] == '('){
+            if (stack[top] == '(' && missing_op == false){
             missing_op = true;
-            errorNum++;
-            errorLines[errorNum] = lineNum;
+            errorLine = lineNum;
             }
-            else if (stack[top] == '[') {
+            else if (stack[top] == '[' && missing_ob == false) {
                 missing_ob = true;
-                errorNum++;
-                errorLines[errorNum] = lineNum;
+                errorLine = lineNum;
             }
         }
         lineNum++;
@@ -55,13 +51,19 @@ int main(void) {
                     break;
 
                 case'(':
-
+                    if (stack[top] == '('){
+                        missing_op = false;
+                        errorLine = lineNum;
+                    }
                     top++;
                     stack[top] = fileLine[p];
                     break;
 
                 case '[':
-
+                    if (stack[top] == '['){
+                        missing_ob = false;
+                        errorLine = lineNum;
+                    }
                     top++;
                     stack[top] = fileLine[p];
                     break;
@@ -91,8 +93,7 @@ int main(void) {
                         {
                             if (missing_op == true){
                                 missing_op = false;
-                                errorLines[errorNum] = '\0';
-                                errorNum--;
+                                errorLine = 0;
                             }
                             stack[top] = '\0';
                             break;
@@ -111,8 +112,7 @@ int main(void) {
                         {
                             if (missing_ob == true){
                                 missing_ob = false;
-                                errorLines[errorNum] = '\0';
-                                errorNum--;
+                                errorLine = 0;
                             }
                             stack[top] = '\0';
                             break;
@@ -127,12 +127,13 @@ int main(void) {
     }
     for(top ; top > -1 ; top--){
         if (stack[top] == '('){
-            printf("ERROR: Missing closing parenthesis. At line: %d \n", errorLines[errorNum]);
-            //errorNum--;
+            printf("ERROR: Missing closing parenthesis. At line: %d \n", errorLine);
         }
         else if (stack[top] == '['){
-            printf("ERROR: Missing closing bracket. At line: %d \n", errorLines[errorNum]);
-            //errorNum--;
+            printf("ERROR: Missing closing bracket. At line: %d \n", errorLine);
+        }
+        else if (stack[top] == '{'){
+            printf("ERROR: Missing closing brace. At line: %d \n", lineNum);
         }
     }
 
